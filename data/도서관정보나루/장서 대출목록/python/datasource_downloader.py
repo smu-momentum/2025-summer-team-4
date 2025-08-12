@@ -17,6 +17,7 @@ from util import get_logger
 from util import time_string
 from util import add_time_record
 from util import get_average_time
+from util import is_valid_csv
 
 
 logger = get_logger('crawler:downloader')
@@ -24,25 +25,39 @@ logger = get_logger('crawler:downloader')
 
 def row_filter(LibraryName: str, Year: int, Month: int, Url: str, ValidUrl: bool, SaveAt: str) -> bool:
     """이 조건에 해당하는 데이터만 다운로드 받는다."""
-    return ValidUrl
+    file = DIR / SaveAt
+    if not ValidUrl:
+        return False
+    if is_valid_csv(file):
+        return False
+    return True
 
 
 def main():
     df = pd.read_csv(DATASOURCE_FILE)
 
     def generate_row_idx():
+        yielded = 0
         for i in range(len(df)):
+            if i == 0 or (i+1) % 100 == 0:
+                logger.info(f'{i+1}/{len(df)} 인덱스를 생성하는 중... ({yielded}개 생성됨)')
             if row_filter(*df.iloc[i]):
                 yield i
+                yielded += 1
 
+    logger.info(f'다운 받을 파일의 수를 세는 중...')
     target_row_idx = list(generate_row_idx())
     total_count = len(target_row_idx)
+
+    logger.info(f'총 {total_count}개의 파일을 다운로드 시작')
     for count, i in enumerate(target_row_idx, start=1):
         url = df.iloc[i]['Url']
         pathname = df.iloc[i]['SaveAt']
         file = DIR / pathname
 
-        if not download_data(file, url):
+        download_data(file, url)
+
+        if not is_valid_csv(file):
             # update validity
             df['ValidUrl'].iat[i] = False
             df.to_csv(DATASOURCE_FILE, index=False)
@@ -54,12 +69,7 @@ def main():
         print(log_message)
 
 
-def download_data(file: pathlib.Path, url: str, force: bool = False) -> bool:
-    if file.exists():
-        logger.warning(f'파일이 존재합니다: "{file}"')
-        if file.stat().st_size > 0 and not force:
-            logger.info(f'다운로드를 건너뜁니다.')
-            return True
+def download_data(file: pathlib.Path, url: str) -> bool:
     try:
         logger.info(f'다운로드를 준비하는 중: "{url}"')
         response = requests.get(url)

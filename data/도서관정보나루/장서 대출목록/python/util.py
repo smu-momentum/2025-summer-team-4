@@ -1,5 +1,6 @@
 import collections
 import logging
+import pathlib
 import sys
 import time
 
@@ -68,13 +69,21 @@ def memory_string(bytes: int) -> str:
         return f'{mb:.1f}MB'
 
 
-def escape_csv_double_quotes(csv_content: str) -> str:
+def escape_csv_double_quotes(content: str) -> str:
     """CSV 파일의 내용에서 이중 따옴표를 이스케이프 처리"""
     # Escape double quotes in CSV
     # while keeping `","`` as a valid string
-    csv_content = csv_content.replace('","', '@@@')
-    csv_content = csv_content.replace('"', '""')
-    csv_content = csv_content.replace('@@@', '')
-    csv_content = csv_content.replace('\n""', '\n"')
-    csv_content = csv_content.replace('"",\n', '",\n')
-    return csv_content
+    content = content.replace('","', '@@@')
+    content = content.replace('"', '""')
+    content = content.replace('@@@', '')
+    content = content.replace('\n""', '\n"')
+    content = content.replace('"",\n', '",\n')
+    return content
+
+
+def is_valid_csv(file: pathlib.Path) -> bool:
+    """CSV 파일이 유효한지 검사"""
+    if not file.exists():
+        return False
+    with file.open('rt') as f:
+        return len(f.readlines()) > 2
