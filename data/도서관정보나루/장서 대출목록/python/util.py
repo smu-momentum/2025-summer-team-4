@@ -83,7 +83,16 @@ def escape_csv_double_quotes(content: str) -> str:
 
 def is_valid_csv(file: pathlib.Path) -> bool:
     """CSV 파일이 유효한지 검사"""
+    # 파일이 존재해야 한다.
     if not file.exists():
         return False
-    with file.open('rt') as f:
-        return len(f.readlines()) > 2
+    # 최소 3줄 이상.
+    try:
+        with file.open('rt') as f:
+            f.readline()
+            f.readline()
+            if not f.readline():
+                return False
+    except Exception:
+        return False
+    return True
