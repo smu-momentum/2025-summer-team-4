@@ -75,7 +75,7 @@ def escape_csv_double_quotes(content: str) -> str:
     # while keeping `","`` as a valid string
     content = content.replace('","', '@@@')
     content = content.replace('"', '""')
-    content = content.replace('@@@', '')
+    content = content.replace('@@@', '","')
     content = content.replace('\n""', '\n"')
     content = content.replace('"",\n', '",\n')
     return content
