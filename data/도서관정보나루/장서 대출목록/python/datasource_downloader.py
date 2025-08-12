@@ -6,8 +6,6 @@
 datasource_crawler.py 로 생성한 datasource.csv 를 바탕으로 데이터를 다운로드 받아 저장하는 작업을 수행합니다.
 """
 
-import collections
-import time
 import pathlib
 
 import pandas as pd
@@ -16,15 +14,17 @@ import requests
 from config import DIR
 from config import DATASOURCE_FILE
 from config import get_logger
+from util import time_string
+from util import add_time_record
+from util import get_average_time
 
 
 logger = get_logger('crawler:downloader')
-time_recorder = collections.deque()
 
 
 def row_filter(LibraryName: str, Year: int, Month: int, Url: str, ValidUrl: bool, SaveAt: str) -> bool:
     """이 조건에 해당하는 데이터만 다운로드 받는다."""
-    return ValidUrl
+    return ValidUrl and Year == 2025 and Month == 7
 
 
 def main():
@@ -77,33 +77,6 @@ def download_data(file: pathlib.Path, url: str, force: bool = False) -> bool:
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(content)
         return True
-
-
-def time_string(seconds: float) -> str:
-    """초 단위의 시간을 'x시간 x분 x초' 형식으로 변환"""
-    if seconds < 60:
-        return f'{seconds:.0f}초'
-    elif seconds < 3600:
-        minutes = int(seconds // 60)
-        seconds = int(seconds % 60)
-        return f'{minutes}분 {seconds}초'
-    else:
-        hours = int(seconds // 3600)
-        minutes = int((seconds % 3600) // 60)
-        seconds = int(seconds % 60)
-        return f'{hours}시간 {minutes}분 {seconds}초'
-
-
-def add_time_record():
-    time_recorder.append(time.time())
-    while len(time_recorder) > 8:
-        time_recorder.popleft()
-
-
-def get_average_time() -> float:
-    if not time_recorder:
-        return 10
-    return (time_recorder[-1]-time_recorder[0]) / len(time_recorder)
 
 
 main()
