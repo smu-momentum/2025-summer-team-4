@@ -5,6 +5,7 @@ import sys
 import time
 
 from config import LOG_FILE
+from config import ERORR_ONLY_LOG_FILE
 from config import LOG_FORMAT
 
 
@@ -18,6 +19,10 @@ def get_logger(name: str = None) -> logging.Logger:
     logger_file_handler.setLevel(logging.DEBUG)
     logger_file_handler.setFormatter(logger_formatter)
 
+    error_logger_file_handler = logging.StreamHandler(ERORR_ONLY_LOG_FILE.open('w'))
+    error_logger_file_handler.setLevel(logging.ERROR)
+    error_logger_file_handler.setFormatter(logger_formatter)
+
     logger_stream_handler = logging.StreamHandler(sys.stdout)
     logger_stream_handler.setLevel(logging.DEBUG)
     logger_stream_handler.setFormatter(logger_formatter)
@@ -26,6 +31,7 @@ def get_logger(name: str = None) -> logging.Logger:
     logger.setLevel(logging.DEBUG)
     logger.addHandler(logger_file_handler)
     logger.addHandler(logger_stream_handler)
+    logger.addHandler(error_logger_file_handler)
 
     return logger
 
