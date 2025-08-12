@@ -25,7 +25,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
 from config import DATASOURCE_FILE
-from config import get_logger
+from util import get_logger
 
 
 logger = get_logger('crawler')

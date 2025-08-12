@@ -1,8 +1,32 @@
 import collections
+import logging
+import sys
 import time
+
+from config import LOG_FILE
+from config import LOG_FORMAT
 
 
 time_recorder = collections.deque()
+
+
+def get_logger(name: str = None) -> logging.Logger:
+    logger_formatter = logging.Formatter(LOG_FORMAT)
+
+    logger_file_handler = logging.StreamHandler(LOG_FILE.open('a'))
+    logger_file_handler.setLevel(logging.DEBUG)
+    logger_file_handler.setFormatter(logger_formatter)
+
+    logger_stream_handler = logging.StreamHandler(sys.stdout)
+    logger_stream_handler.setLevel(logging.DEBUG)
+    logger_stream_handler.setFormatter(logger_formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logger_file_handler)
+    logger.addHandler(logger_stream_handler)
+
+    return logger
 
 
 def add_time_record(maxsize: int = 10):

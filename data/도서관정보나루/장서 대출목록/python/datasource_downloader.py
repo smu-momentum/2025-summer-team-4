@@ -13,7 +13,7 @@ import requests
 
 from config import DIR
 from config import DATASOURCE_FILE
-from config import get_logger
+from util import get_logger
 from util import time_string
 from util import add_time_record
 from util import get_average_time
@@ -24,7 +24,7 @@ logger = get_logger('crawler:downloader')
 
 def row_filter(LibraryName: str, Year: int, Month: int, Url: str, ValidUrl: bool, SaveAt: str) -> bool:
     """이 조건에 해당하는 데이터만 다운로드 받는다."""
-    return ValidUrl and Year == 2025 and Month == 7
+    return ValidUrl
 
 
 def main():
@@ -39,7 +39,6 @@ def main():
     total_count = len(target_row_idx)
     for count, i in enumerate(target_row_idx, start=1):
         url = df.iloc[i]['Url']
-        is_valid_url = df.iloc[i]['ValidUrl']
         pathname = df.iloc[i]['SaveAt']
         file = DIR / pathname
 
