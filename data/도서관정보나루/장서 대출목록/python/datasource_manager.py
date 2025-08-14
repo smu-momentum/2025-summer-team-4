@@ -1,11 +1,14 @@
 import collections
 import functools
 import logging
+import pathlib
 import time
 
 import pandas as pd
 
-from config import DATASOURCE_FILE
+
+DIR = pathlib.Path(__file__).parent.parent.resolve()
+DATASOURCE_FILE = DIR / 'datasource.csv'
 
 
 class DataSourceBatcher:
@@ -29,14 +32,15 @@ class DataSourceBatcher:
             if (i+1) % step == 0:
                 self.logger.info(f'배치 크기 탐색 {(i+1)//step}% 완료 ({i+1}/{len(self._df)})')
             LibraryName, Year, Month, Url, ValidUrl, SaveAt = self._df.iloc[i]
+            file = DIR / SaveAt
             if self.__filter__(i, LibraryName, Year, Month, Url, ValidUrl, SaveAt):
                 size += 1
         return size
 
-    def __batch__(self, index: int, LibraryName: str, Year: int, Month: int, Url: str, ValidUrl: bool, SaveAt: str):
+    def __batch__(self, index: int, LibraryName: str, Year: int, Month: int, Url: str, ValidUrl: bool, SaveAt: pathlib.Path):
         pass
 
-    def __filter__(self, index: int, LibraryName: str, Year: int, Month: int, Url: str, ValidUrl: bool, SaveAt: str) -> bool:
+    def __filter__(self, index: int, LibraryName: str, Year: int, Month: int, Url: str, ValidUrl: bool, SaveAt: pathlib.Path) -> bool:
         return True
 
     def batch(self):
@@ -45,12 +49,13 @@ class DataSourceBatcher:
         count = 0
         for i in range(len(self._df)):
             LibraryName, Year, Month, Url, ValidUrl, SaveAt = self._df.iloc[i]
-            if self.__filter__(i, LibraryName, Year, Month, Url, ValidUrl, SaveAt):
+            file = DIR / SaveAt
+            if self.__filter__(i, LibraryName, Year, Month, Url, ValidUrl, file):
                 self._record_batch_time()
                 count += 1
                 self.logger.info(f'배치 작업 진행 중: {count/len(self)*100:.1f}% ({count}/{len(self)})')
                 self.logger.info(f'예상 소요시간: {time_string(self._estimate_seconds_per_batch()*(len(self)-count))}')
-                self.__batch__(i, LibraryName, Year, Month, Url, ValidUrl, SaveAt)
+                self.__batch__(i, LibraryName, Year, Month, Url, ValidUrl, file)
 
     def _record_batch_time(self):
         self._timestamps.append(time.time())

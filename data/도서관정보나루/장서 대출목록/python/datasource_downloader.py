@@ -17,6 +17,7 @@ class DataSourceDownloadBatcher(DataSourceBatcher):
     def __filter__(self, index, LibraryName, Year, Month, Url, ValidUrl, SaveAt) -> bool:
         file = DIR / SaveAt
         try:
+            assert Year == 2024 and Month == 1
             assert ValidUrl
             assert not file.exists()
         except AssertionError:
@@ -25,7 +26,6 @@ class DataSourceDownloadBatcher(DataSourceBatcher):
             return True
 
     def __batch__(self, index, LibraryName, Year, Month, Url, ValidUrl, SaveAt):
-        file = DIR / SaveAt
         try:
             self.logger.info(f'다운로드를 준비하는 중: "{Url}"')
             response = requests.get(Url)
@@ -35,11 +35,11 @@ class DataSourceDownloadBatcher(DataSourceBatcher):
         except Exception as e:
             self.logger.error(e)
             self.logger.error(f'다운로드에 실패했습니다.')
-            self.logger.info(f'파일을 생성하지 않습니다: "{file}"')
+            self.logger.info(f'파일을 생성하지 않습니다: "{SaveAt}"')
         else:
-            self.logger.info(f'파일을 작성하는 중: "{file}"')
-            file.parent.mkdir(parents=True, exist_ok=True)
-            file.write_text(content)
+            self.logger.info(f'파일을 작성하는 중: "{SaveAt}"')
+            SaveAt.parent.mkdir(parents=True, exist_ok=True)
+            SaveAt.write_text(content)
 
 
 if __name__ == '__main__':
