@@ -2,18 +2,36 @@ import collections
 import functools
 import logging
 import pathlib
+import sys
 import time
 
 import pandas as pd
 
 
 DIR = pathlib.Path(__file__).parent.parent.resolve()
+
 DATASOURCE_FILE = DIR / 'datasource.csv'
+
+DEFAULT_LOG_FILE = DIR / 'python' / '.log'
+DEFAULT_LOG_FORMAT = '[%(levelname)s] [%(name)s] [%(asctime)s] %(message)s'
+DEFAULT_LOG_FORMATTER = logging.Formatter(DEFAULT_LOG_FORMAT)
+DEFAULT_LOG_FILE_HANDLER = logging.StreamHandler(DEFAULT_LOG_FILE.open('a'))
+DEFAULT_LOG_FILE_HANDLER.setLevel(logging.DEBUG)
+DEFAULT_LOG_FILE_HANDLER.setFormatter(DEFAULT_LOG_FORMATTER)
+DEFAULT_LOG_STREAM_HANDLER = logging.StreamHandler(sys.stdout)
+DEFAULT_LOG_STREAM_HANDLER.setLevel(logging.DEBUG)
+DEFAULT_LOG_STREAM_HANDLER.setFormatter(DEFAULT_LOG_FORMATTER)
 
 
 class DataSourceBatcher:
-    def __init__(self, logger: logging.Logger, max_timestamps: int = 10):
-        self.logger = logger
+    def __init__(self, logger_or_name: logging.Logger | str = 'datasource-batcher', max_timestamps: int = 10):
+        if isinstance(logger_or_name, str):
+            self.logger = logging.getLogger(logger_or_name)
+            self.logger.setLevel(logging.DEBUG)
+            self.logger.addHandler(DEFAULT_LOG_FILE_HANDLER)
+            self.logger.addHandler(DEFAULT_LOG_STREAM_HANDLER)
+        else:
+            self.logger = logger_or_name
         self._df = pd.read_csv(DATASOURCE_FILE)
         self._timestamps = collections.deque()
         self._max_timestamps = max_timestamps
